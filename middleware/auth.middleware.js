@@ -7,7 +7,7 @@ const auth = (req, res, next) => {
         try {
             const decoded = jwt.verify(token, process.env.secretkey);
             if (decoded) {
-                req.user = { id: decoded.userID, name: decoded.userName }; // ✅ Fix: Assign to req.user
+                req.user = { id: decoded.userID}
                 next();
             } else {
                 res.status(400).json({ msg: "Not Authorized!!" });

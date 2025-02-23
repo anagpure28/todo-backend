@@ -15,7 +15,7 @@ userRouter.post("/register", async (req, res) => {
     // Check if user already exists
     const existingUser = await UserModel.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ msg: "User already exists" });
+      return res.status(400).json({ message: "User already exists" });
     }
 
     // Hash the password
@@ -31,7 +31,7 @@ userRouter.post("/register", async (req, res) => {
 
         res
           .status(201)
-          .json({ msg: "Registration Successfull!!", user: req.body });
+          .json({ message: "Registration Successfull!!", user: req.body });
       }
     });
   } catch (err) {
@@ -43,7 +43,7 @@ userRouter.post("/register", async (req, res) => {
 
 userRouter.post("/login", async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { email, password } = req.body;
 
     // Check if user exists
     const user = await UserModel.findOne({ email });
@@ -51,14 +51,14 @@ userRouter.post("/login", async (req, res) => {
     if(user){
         bycrpt.compare(password, user.password, (err, result)=>{
             if(result){
-                let token = jwt.sign({userID: user._id, userName: user.name}, process.env.secretkey)
-                res.status(200).json({ msg: "Login Successfull!!", token, name });
+                let token = jwt.sign({userID: user._id}, process.env.secretkey)
+                res.status(200).json({ message: "Login Successfull!!", token });
             }else{
-                res.status(400).json({ msg: 'Invalid Credentials!!' })
+                res.status(400).json({ message: 'Invalid Credentials!!' })
             }
         })
     }else{
-        return res.status(400).json({ msg: "User does not exists!!" });
+        return res.status(400).json({ message: "User does not exists!!" });
     }
   } catch (err) {
     res.status(500).json({ error: err.message });

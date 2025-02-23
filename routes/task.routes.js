@@ -22,7 +22,7 @@ taskRouter.post("/create", auth, async (req, res) => {
 // Get a Tasks of login user
 taskRouter.get("/getTasks", auth, async (req, res) => {
     try {
-        let { search, status, startDate, endDate, page = 1, limit = 10 } = req.query;
+        let { search, status, startDate, endDate, page = 1, limit = 2 } = req.query;
 
         // Ensure limit doesn't exceed 10
         limit = Math.min(parseInt(limit) || 10, 10);
@@ -42,8 +42,14 @@ taskRouter.get("/getTasks", auth, async (req, res) => {
 
         if (startDate || endDate) {
             filter.createdAt = {};
-            if (startDate) filter.createdAt.$gte = new Date(startDate);
-            if (endDate) filter.createdAt.$lte = new Date(endDate);
+            if (startDate) {
+                filter.createdAt.$gte = new Date(startDate);
+            }
+            if (endDate) {
+                let endDateTime = new Date(endDate);
+                endDateTime.setHours(23, 59, 59, 999); // Set time to end of the day
+                filter.createdAt.$lte = endDateTime;
+            }
         }
 
         // Fetch tasks with pagination
@@ -68,6 +74,7 @@ taskRouter.get("/getTasks", auth, async (req, res) => {
 });
 
 
+
 // Update the Task
 taskRouter.put("/update/:id", auth, async (req, res) => {
     const { id } = req.params;
@@ -82,7 +89,7 @@ taskRouter.put("/update/:id", auth, async (req, res) => {
 
         const updatedTask = await TaskModel.findByIdAndUpdate(
             id,
-            { name, description, status },
+            { name, description, status: status.toUpperCase() },
             { new: true }
         );
 
@@ -99,13 +106,13 @@ taskRouter.delete("/delete/:id", auth, async (req, res) => {
     const { id } = req.params;
 
     try {
-        const task = await TaskModel.findOne({ _id: id, user: req.user.id });
+        const task = await TaskModel.findOne({_id: id});
 
         if (!task) {
             return res.status(404).json({ message: "Task not found or not authorized to delete" });
         }
 
-        await TaskModel.findByIdAndDelete(id);
+        await TaskModel.findByIdAndDelete({_id: id});
 
         res.status(200).json({ message: "Task deleted successfully" });
     } catch (error) {
