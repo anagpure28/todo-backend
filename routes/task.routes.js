@@ -42,12 +42,21 @@ taskRouter.get("/getTasks", auth, async (req, res) => {
 
         if (startDate || endDate) {
             filter.createdAt = {};
+
             if (startDate) {
-                filter.createdAt.$gte = new Date(startDate);
+                let startDateTime = new Date(startDate);
+                startDateTime.setHours(0, 0, 0, 0); // Start of the day
+                filter.createdAt.$gte = startDateTime;
             }
+
             if (endDate) {
                 let endDateTime = new Date(endDate);
-                endDateTime.setHours(23, 59, 59, 999); // Set time to end of the day
+                endDateTime.setHours(23, 59, 59, 999); // End of the day
+                filter.createdAt.$lte = endDateTime;
+            } else if (startDate) {
+                // If only startDate is given, endDate should be end of the same day
+                let endDateTime = new Date(startDate);
+                endDateTime.setHours(23, 59, 59, 999);
                 filter.createdAt.$lte = endDateTime;
             }
         }
@@ -72,6 +81,7 @@ taskRouter.get("/getTasks", auth, async (req, res) => {
         res.status(500).json({ message: "Error fetching tasks", error: error.message });
     }
 });
+
 
 
 
